@@ -47,23 +47,39 @@ const getStateData = async (req, res) => {
 
 
 const getStatesByContiguity = async (req, res) => {
-    const { contiguity } = req.query;
-    try {
-        const isContiguous = contiguity === "true";
-        const nonContiguous = ["AK", "HI"];
+    const { contig } = req.query;
+    const isContiguous = contig === "true";
+    const nonContiguous = ["AK", "HI"];
 
+    try {
+        // Filter based on contiguity
         const filteredStates = statesData.filter((state) =>
             isContiguous
                 ? !nonContiguous.includes(state.code)
                 : nonContiguous.includes(state.code)
         );
 
-        res.json(filteredStates);
+        // Fetch fun facts from DB
+        const funFactsData = await State.find({});
+        const funFactsMap = new Map(
+            funFactsData.map((state) => [state.stateCode, state.funfacts])
+        );
+
+        // Merge filtered states
+        const statesWithFunFacts = filteredStates.map((state) => {
+            if (funFactsMap.has(state.code)) {
+                return { ...state, funfacts: funFactsMap.get(state.code) };
+            }
+            return { ...state };
+        });
+
+        res.json(statesWithFunFacts);
     } catch (error) {
         logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
         res.status(500).json({ error: error.message });
     }
 };
+
 
 
 const getStateCapital = (req, res) => {
@@ -152,8 +168,14 @@ const updateFunFact = async (req, res) => {
     const { index, funfact } = req.body;
     const { stateData } = req;
 
+    // Validate index
+    if (index === undefined) {
+        return res.status(400).json({ message: "State fun fact index value required" });
+    }
+
+    // Validate funfact
     if (!funfact || typeof funfact !== 'string') {
-        return res.status(400).json({ message: "Fun fact value is required and must be a string." });
+        return res.status(400).json({ message: "State fun fact value required" });
     }
 
     try {
@@ -163,13 +185,13 @@ const updateFunFact = async (req, res) => {
             return res.status(400).json({ message: `No Fun Facts found for ${stateData.state}` });
         }
 
-        const validationMessage = validateFunFactIndex(index, state.funfacts, stateData.state);
-        if (validationMessage) {
-            return res.status(400).json({ message: validationMessage });
+        const arrayIndex = index - 1;
+
+        if (arrayIndex < 0 || arrayIndex >= state.funfacts.length) {
+            return res.status(400).json({ message: `No Fun Fact found at that index for ${stateData.state}` });
         }
 
-        const arrayIndex = index - 1;
-        state.funfacts[arrayIndex] = funfact.toString();
+        state.funfacts[arrayIndex] = funfact;
 
         await state.save();
 
@@ -182,24 +204,30 @@ const updateFunFact = async (req, res) => {
 };
 
 
+
 const deleteFunFact = async (req, res) => {
     const { index } = req.body;
     const { stateData } = req;
+
+    // Validate index
+    if (index === undefined) {
+        return res.status(400).json({ message: "State fun fact index value required" });
+    }
+
     const arrayIndex = index - 1;
 
     try {
         const state = await State.findOne({ stateCode: stateData.code });
 
-        if (!state || !state.funfacts || state.funfacts.length === 0) {
+        if (!state || !Array.isArray(state.funfacts) || state.funfacts.length === 0) {
             return res.status(400).json({ message: `No Fun Facts found for ${stateData.state}` });
         }
 
-        const validationMessage = validateFunFactIndex(index, state.funfacts, stateData.state);
-        if (validationMessage) {
-            return res.status(400).json({ message: validationMessage });
+        if (arrayIndex < 0 || arrayIndex >= state.funfacts.length) {
+            return res.status(400).json({ message: `No Fun Fact found at that index for ${stateData.state}` });
         }
 
-        state.funfacts.splice(arrayIndex, 1); // Remove the fun fact at the given index
+        state.funfacts.splice(arrayIndex, 1); // Remove the fun fact
         await state.save();
 
         logEvents(`DELETE: Fun fact #${index} deleted for ${stateData.state}`, 'funfactLog.txt');
@@ -209,6 +237,7 @@ const deleteFunFact = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 module.exports = {
     getAllStates,
