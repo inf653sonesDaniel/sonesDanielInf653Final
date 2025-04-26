@@ -9,4 +9,27 @@ Brief Summary:
 Available at: *****************
 -------------------------------------
 
-<pre> ``` GET Requests /states/ - Get all states data /states/?contig=true - Get contiguous states data (excludes AK and HI) /states/?contig=false - Get non-contiguous states data (AK and HI only) /states/:state - Get data for the specified state /states/:state/funfact - Get a random fun fact for the specified state /states/:state/capital - Get the capital of the specified state /states/:state/nickname - Get the nickname of the specified state /states/:state/population - Get the population of the specified state /states/:state/admission - Get the admission date of the specified state POST Requests /states/:state/funfact - Add fun facts to the specified state PATCH Requests /states/:state/funfact - Update a specific fun fact of the specified state DELETE Requests /states/:state/funfact - Delete a specific fun fact of the specified state ``` </pre>
+<pre>
+GET Requests                Response
+/states/                    All state data returned
+/states/?contig=true        All state data for contiguous states (Not AK or HI)
+/states/?contig=false       All state data for non-contiguous states (AK, HI)
+/states/:state              All data for the state URL parameter
+/states/:state/funfact      A random fun fact for the state URL parameter
+/states/:state/capital      { ‘state’: stateName, ‘capital’: capitalName }
+/states/:state/nickname     { ‘state’: stateName, ‘nickname’: nickname }
+/states/:state/population   { ‘state’: stateName, ‘population’: population }
+/states/:state/admission    { ‘state’: stateName, ‘admitted’: admissionDate }
+
+
+POST Requests               Response
+/states/:state/funfact      The result received from MongoDB
+
+
+
+PATCH Requests              Response
+/states/:state/funfact      The result received from MongoDB
+
+
+DELETE Requests              Response
+/states/:state/funfact      The result received from MongoDB</pre>
