@@ -31,5 +31,5 @@ PATCH Requests              Response
 /states/:state/funfact      The result received from MongoDB
 
 
-DELETE Requests              Response
+DELETE Requests             Response
 /states/:state/funfact      The result received from MongoDB</pre>
