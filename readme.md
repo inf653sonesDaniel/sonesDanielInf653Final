@@ -6,7 +6,7 @@ _____________________________________
 Brief Summary:
 # This RESTful API was developed for the final project of the INF653 Back End Web Development course at Fort Hays State University (FHSU). It provides detailed information about U.S. states, including data like population, admission date, and fun facts. The API supports various operations, including filtering and CRUD (Create, Read, Update, Delete) functionality for fun facts, while conforming to REST standards with JSON-formatted responses.
 
-Available at: *****************
+Available at: [Glitch](https://jewel-ninth-sting.glitch.me)
 -------------------------------------
 
 <pre>
