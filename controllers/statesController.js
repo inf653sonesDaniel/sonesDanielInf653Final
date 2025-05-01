@@ -144,7 +144,15 @@ const addFunFacts = async (req, res) => {
         await state.save();
 
         logEvents(`CREATE: Added fun facts to ${stateCode}`, 'funfactLog.txt');
-        res.status(201).json(generateFunFactsResponse(stateCode, state.funfacts));
+        
+        // Fetch full state data and include funfacts
+        const fullState = statesData.find(s => s.code === stateCode);
+        if (!fullState) {
+            return res.status(404).json({ message: "State not found" });
+        }
+
+        // Now generate response with full state data
+        res.status(201).json(generateFunFactsResponse(fullState, state.funfacts));
     } catch (error) {
         handleServerError(req, res, error, "Error adding fun facts");    }
 };
@@ -182,7 +190,19 @@ const updateFunFact = async (req, res) => {
         await state.save();
 
         logEvents(`UPDATE: Fun fact #${index} updated for ${stateData.state}`, 'funfactLog.txt');
-        res.status(200).json(generateFunFactsResponse(stateData.code, state.funfacts));
+        // Fetch full state data
+        const fullState = statesData.find(s => s.code === stateData.code);
+        if (!fullState) {
+            return res.status(404).json({ message: "State not found" });
+        }
+
+        // Return the updated state with all 4 properties
+        res.status(200).json({
+            state: fullState.state,
+            stateCode: fullState.code,
+            capital: fullState.capital_city,
+            funfacts: state.funfacts // Return the updated fun facts here
+        });
     } catch (error) {
         handleServerError(req, res, error, "Error updating fun fact");    }
 };
