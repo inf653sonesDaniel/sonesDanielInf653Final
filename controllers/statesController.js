@@ -1,6 +1,6 @@
+//controllers / statesController.js
 const State = require("../model/States");
 const statesData = require("../model/StatesData.json");
-const { validateFunFactIndex } = require("../middleware/validateState");
 const { logEvents } = require("../middleware/logEvents");
 
 
