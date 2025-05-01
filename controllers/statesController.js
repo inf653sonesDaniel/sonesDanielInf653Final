@@ -133,11 +133,17 @@ const addFunFacts = async (req, res) => {
     try {
         const state = await State.findOne({ stateCode });
 
+        // If the state is found, append the new fun facts
         if (state) {
-            // Append new fun facts to existing ones
-            state.funfacts.push(...newFunFacts);
+            // Ensure we append only the new fun facts to the existing ones
+            // We can use filter to avoid duplicating fun facts
+            newFunFacts.forEach(funFact => {
+                if (!state.funfacts.includes(funFact)) {
+                    state.funfacts.push(funFact);
+                }
+            });
         } else {
-            // Create new document with provided fun facts
+            // If no existing state, create a new state document
             state = new State({ stateCode, funfacts: newFunFacts });
         }
 
@@ -152,7 +158,13 @@ const addFunFacts = async (req, res) => {
         }
 
         // Now generate response with full state data
-        res.status(201).json(generateFunFactsResponse(fullState, state.funfacts));
+        // Return the updated state with all 4 properties
+        res.status(200).json({
+            state: fullState.state,
+            stateCode: fullState.code,
+            capital: fullState.capital_city,
+            funfacts: state.funfacts
+        });
     } catch (error) {
         handleServerError(req, res, error, "Error adding fun facts");    }
 };
@@ -201,7 +213,7 @@ const updateFunFact = async (req, res) => {
             state: fullState.state,
             stateCode: fullState.code,
             capital: fullState.capital_city,
-            funfacts: state.funfacts // Return the updated fun facts here
+            funfacts: state.funfacts
         });
     } catch (error) {
         handleServerError(req, res, error, "Error updating fun fact");    }
