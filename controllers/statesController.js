@@ -133,13 +133,18 @@ const addFunFacts = async (req, res) => {
     try {
         const state = await State.findOne({ stateCode });
 
-        // Append the new fun facts to the existing fun facts
-        state.funfacts.push(...newFunFacts);
+        if (state) {
+            // Append new fun facts to existing ones
+            state.funfacts.push(...newFunFacts);
+        } else {
+            // Create new document with provided fun facts
+            state = new State({ stateCode, funfacts: newFunFacts });
+        }
 
         await state.save();
 
         logEvents(`CREATE: Added fun facts to ${stateCode}`, 'funfactLog.txt');
-        res.status(201).json(generateFunFactsResponse(state, state.funfacts));
+        res.status(201).json(generateFunFactsResponse(stateCode, state.funfacts));
     } catch (error) {
         handleServerError(req, res, error, "Error adding fun facts");    }
 };
@@ -150,7 +155,7 @@ const updateFunFact = async (req, res) => {
     const { stateData } = req;
 
     // Validate index
-    if (index === undefined || index <= 0) {
+    if (index === undefined || typeof index !== 'number' || index <= 0) {
         return res.status(400).json({ message: "State fun fact index value required" });
     }
 
@@ -177,7 +182,7 @@ const updateFunFact = async (req, res) => {
         await state.save();
 
         logEvents(`UPDATE: Fun fact #${index} updated for ${stateData.state}`, 'funfactLog.txt');
-        res.status(200).json(generateFunFactsResponse(state, state.funfacts));
+        res.status(200).json(generateFunFactsResponse(stateData.code, state.funfacts));
     } catch (error) {
         handleServerError(req, res, error, "Error updating fun fact");    }
 };
@@ -206,11 +211,14 @@ const deleteFunFact = async (req, res) => {
             return res.status(400).json({ message: `No Fun Fact found at that index for ${stateData.state}` });
         }
 
-        state.funfacts.splice(arrayIndex, 1); // Remove the fun fact
+        // Remove the fun fact at the provided index
+        state.funfacts.splice(arrayIndex, 1);
+
+        // Save the updated state
         await state.save();
 
         logEvents(`DELETE: Fun fact #${index} deleted for ${stateData.state}`, 'funfactLog.txt');
-        res.status(200).json(generateFunFactsResponse(state, state.funfacts));
+        res.status(200).json(generateFunFactsResponse(stateData.code, state.funfacts));
     } catch (error) {
         handleServerError(req, res, error, "Error deleting fun fact");    }
 };

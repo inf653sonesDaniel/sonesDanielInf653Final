@@ -1,5 +1,6 @@
 //middleware/funFactsUtils.js
 const State = require("../model/States");
+const statesData = require("../model/StatesData.json");
 
 // Build a Map of stateCode => funfacts
 const buildFunFactsMap = async () => {
@@ -21,10 +22,11 @@ const getValidFunFactState = async (stateCode, stateName, res) => {
 
 // Utility function to generate the response structure
 const generateFunFactsResponse = (stateData, funfacts) => {
+    const fullState = statesData.find(s => s.code === stateCode);
+    if (!fullState) return { message: "Invalid state code" };
+
     return {
-        state: stateData.state,
-        stateCode: stateData.code,
-        capital: stateData.capital_city,
+        ...fullState,
         funfacts
     };
 };
