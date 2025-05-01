@@ -4,13 +4,15 @@ REST API for 50 States
 _____________________________________
 
 Brief Summary:
-# This RESTful API was developed for the final project of the INF653 Back End Web Development course at Fort Hays State University (FHSU). It provides detailed information about U.S. states, including data like population, admission date, and fun facts. The API supports various operations, including filtering and CRUD (Create, Read, Update, Delete) functionality for fun facts, while conforming to REST standards with JSON-formatted responses.
+# Provides information about U.S. states (population, admission date, and "fun facts").
+# This API supports filtering and CRUD commands for fun facts.
 
 Available at: [Glitch](https://thrilling-ivory-asiago.glitch.me)
 -------------------------------------
 
 <pre>
 GET Requests                Response
+------------------------------------
 /states/                    All state data returned
 /states/?contig=true        All state data for contiguous states (Not AK or HI)
 /states/?contig=false       All state data for non-contiguous states (AK, HI)
@@ -23,13 +25,16 @@ GET Requests                Response
 
 
 POST Requests               Response
+------------------------------------
 /states/:state/funfact      The result received from MongoDB
 
 
 
 PATCH Requests              Response
+------------------------------------
 /states/:state/funfact      The result received from MongoDB
 
 
 DELETE Requests             Response
+------------------------------------
 /states/:state/funfact      The result received from MongoDB</pre>
