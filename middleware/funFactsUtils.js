@@ -19,7 +19,18 @@ const getValidFunFactState = async (stateCode, stateName, res) => {
     return state;
 };
 
+// Utility function to generate the response structure
+const generateFunFactsResponse = (stateData, funfacts) => {
+    return {
+        state: stateData.state,
+        stateCode: stateData.code,
+        capital: stateData.capital_city,
+        funfacts
+    };
+};
+
 module.exports = {
     buildFunFactsMap,
-    getValidFunFactState
+    getValidFunFactState,
+    generateFunFactsResponse
 };

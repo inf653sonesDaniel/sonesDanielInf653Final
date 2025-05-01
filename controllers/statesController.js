@@ -2,7 +2,7 @@
 const State = require("../model/States");
 const statesData = require("../model/StatesData.json");
 const { handleServerError } = require("../middleware/errorHandler");
-const { buildFunFactsMap, getValidFunFactState } = require("../middleware/funFactsUtils");
+const { buildFunFactsMap, getValidFunFactState, generateFunFactsResponse } = require("../middleware/funFactsUtils");
 
 
 const getAllStates = async (req, res) => {
@@ -131,14 +131,15 @@ const addFunFacts = async (req, res) => {
     }
 
     try {
-        const state = await State.findOneAndUpdate(
-            { stateCode },
-            { $push: { funfacts: { $each: newFunFacts } } },
-            { new: true, upsert: true }
-        );
+        const state = await State.findOne({ stateCode });
+
+        // Append the new fun facts to the existing fun facts
+        state.funfacts.push(...newFunFacts);
+
+        await state.save();
 
         logEvents(`CREATE: Added fun facts to ${stateCode}`, 'funfactLog.txt');
-        res.status(newFunFacts.length === 0 ? 200 : 201).json(state);
+        res.status(201).json(generateFunFactsResponse(state, state.funfacts));
     } catch (error) {
         handleServerError(req, res, error, "Error adding fun facts");    }
 };
@@ -149,7 +150,7 @@ const updateFunFact = async (req, res) => {
     const { stateData } = req;
 
     // Validate index
-    if (index === undefined) {
+    if (index === undefined || index <= 0) {
         return res.status(400).json({ message: "State fun fact index value required" });
     }
 
@@ -176,7 +177,7 @@ const updateFunFact = async (req, res) => {
         await state.save();
 
         logEvents(`UPDATE: Fun fact #${index} updated for ${stateData.state}`, 'funfactLog.txt');
-        res.status(200).json(state);
+        res.status(200).json(generateFunFactsResponse(state, state.funfacts));
     } catch (error) {
         handleServerError(req, res, error, "Error updating fun fact");    }
 };
@@ -188,7 +189,7 @@ const deleteFunFact = async (req, res) => {
     const { stateData } = req;
 
     // Validate index
-    if (index === undefined) {
+    if (index === undefined || index <= 0) {
         return res.status(400).json({ message: "State fun fact index value required" });
     }
 
@@ -209,7 +210,7 @@ const deleteFunFact = async (req, res) => {
         await state.save();
 
         logEvents(`DELETE: Fun fact #${index} deleted for ${stateData.state}`, 'funfactLog.txt');
-        res.status(200).json(state);
+        res.status(200).json(generateFunFactsResponse(state, state.funfacts));
     } catch (error) {
         handleServerError(req, res, error, "Error deleting fun fact");    }
 };
