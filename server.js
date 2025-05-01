@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 
 const connectDB = require("./config/dbConn");
 const { logger } = require("./middleware/logEvents");
-const errorHandler = require("./middleware/errorHandler");
+const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
