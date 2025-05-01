@@ -1,31 +1,23 @@
 //controllers / statesController.js
 const State = require("../model/States");
 const statesData = require("../model/StatesData.json");
-const { logEvents } = require("../middleware/logEvents");
+const { handleServerError } = require("../middleware/errorHandler");
+const { buildFunFactsMap, getValidFunFactState } = require("../middleware/funFactsUtils");
 
 
 const getAllStates = async (req, res) => {
     try {
-        // Grab fun facts from MongoDB
-        const funFactsData = await State.find({});
+        const funFactsMap = await buildFunFactsMap();
 
-        // Convert to map
-        const funFactsMap = new Map(
-            funFactsData.map((state) => [state.stateCode, state.funfacts])
-        );
-
-        // Add fun facts to States
         const statesWithFunFacts = statesData.map((state) => {
-            if (funFactsMap.has(state.code)) {
-                return { ...state, funfacts: funFactsMap.get(state.code) };
-            }
-            return { ...state };
+            return funFactsMap.has(state.code)
+                ? { ...state, funfacts: funFactsMap.get(state.code) }
+                : { ...state };
         });
 
         res.json(statesWithFunFacts);
     } catch (error) {
-        logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
-        res.status(500).json({ error: error.message });
+        handleServerError(req, res, error, "Failed to get all states");
     }
 };
 
@@ -40,9 +32,7 @@ const getStateData = async (req, res) => {
 
         res.json(response);
     } catch (error) {
-        logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
-        res.status(500).json({ error: "Error fetching state information" });
-    }
+        handleServerError(req, res, error, "Error fetching state information");    }
 };
 
 
@@ -59,11 +49,7 @@ const getStatesByContiguity = async (req, res) => {
                 : nonContiguous.includes(state.code)
         );
 
-        // Fetch fun facts from DB
-        const funFactsData = await State.find({});
-        const funFactsMap = new Map(
-            funFactsData.map((state) => [state.stateCode, state.funfacts])
-        );
+        const funFactsMap = await buildFunFactsMap();
 
         // Merge filtered states
         const statesWithFunFacts = filteredStates.map((state) => {
@@ -75,9 +61,7 @@ const getStatesByContiguity = async (req, res) => {
 
         res.json(statesWithFunFacts);
     } catch (error) {
-        logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
-        res.status(500).json({ error: error.message });
-    }
+        handleServerError(req, res, error, "Failed to get contiguous states");    }
 };
 
 
@@ -132,9 +116,7 @@ const getStateFunFacts = async (req, res) => {
 
         res.json({ funfact: randomFact });
     } catch (error) {
-        logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
-        res.status(500).json({ error: error.message });
-    }
+        handleServerError(req, res, error, "Error retrieving fun facts");    }
 };
 
 
@@ -158,9 +140,7 @@ const addFunFacts = async (req, res) => {
         logEvents(`CREATE: Added fun facts to ${stateCode}`, 'funfactLog.txt');
         res.status(newFunFacts.length === 0 ? 200 : 201).json(state);
     } catch (error) {
-        logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
-        res.status(500).json({ error: error.message });
-    }
+        handleServerError(req, res, error, "Error adding fun facts");    }
 };
 
 
@@ -198,9 +178,7 @@ const updateFunFact = async (req, res) => {
         logEvents(`UPDATE: Fun fact #${index} updated for ${stateData.state}`, 'funfactLog.txt');
         res.status(200).json(state);
     } catch (error) {
-        logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
-        res.status(500).json({ error: error.message });
-    }
+        handleServerError(req, res, error, "Error updating fun fact");    }
 };
 
 
@@ -233,9 +211,7 @@ const deleteFunFact = async (req, res) => {
         logEvents(`DELETE: Fun fact #${index} deleted for ${stateData.state}`, 'funfactLog.txt');
         res.status(200).json(state);
     } catch (error) {
-        logEvents(`ERROR: ${req.method} ${req.originalUrl} - ${error.message}`, 'errorLog.txt');
-        res.status(500).json({ error: error.message });
-    }
+        handleServerError(req, res, error, "Error deleting fun fact");    }
 };
 
 
